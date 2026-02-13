@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UDI-DI Validator</title>
+    <style>
+        :root {
+            --primary: #0056b3;
+            --success: #16a34a;
+            --error: #dc2626;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text-main: #1f2937;
+            --text-sub: #4b5563;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--card);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 650px;
+            margin-bottom: 2rem;
+        }
+
+        h1 { margin: 0 0 1rem 0; text-align: center; color: #111827; }
+
+        /* General Info Section */
+        .info-section {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .info-section h3 { margin-top: 0; margin-bottom: 0.5rem; font-size: 1.1rem; }
+        .info-section p { margin-bottom: 0.75rem; }
+        .info-section ul { margin: 0; padding-left: 1.5rem; }
+        .info-section li { margin-bottom: 0.25rem; }
+        
+        .highlight-link { 
+            font-weight: 600; 
+            color: var(--primary); 
+            text-decoration: none;
+            border-bottom: 1px dotted currentColor;
+        }
+        .highlight-link:hover { text-decoration: underline; }
+
+        .form-group { margin-bottom: 1.5rem; }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            box-sizing: border-box;
+            font-family: 'Courier New', Courier, monospace;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.1);
+        }
+
+        button.validate-btn {
+            width: 100%;
+            padding: 1rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button.validate-btn:hover { background-color: #004494; }
+
+        #result { margin-top: 2rem; display: none; }
+
+        .result-card {
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 6px solid;
+            background-color: #f9fafb;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .result-card.valid {
+            background-color: #f0fdf4;
+            border-color: var(--success);
+            color: #15803d;
+        }
+
+        .result-card.invalid {
+            background-color: #fef2f2;
+            border-color: var(--error);
+            color: #b91c1c;
+        }
+
+        .result-header { 
+            font-weight: bold; 
+            font-size: 1.2rem; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+
+        .standard-badge { 
+            background: rgba(0,0,0,0.08); 
+            padding: 4px 10px; 
+            border-radius: 9999px; 
+            font-size: 0.75rem; 
+            text-transform: uppercase; 
+            letter-spacing: 0.05em;
+        }
+
+        .result-details { font-size: 1rem; opacity: 0.9; line-height: 1.5; word-break: break-all; margin-bottom: 0.5rem;}
+
+        .info-btn {
+            background: none;
+            border: 1px solid currentColor;
+            color: inherit;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            width: fit-content;
+            align-self: flex-start;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 0.5rem;
+        }
+        
+        .info-btn:hover { background-color: rgba(0,0,0,0.05); }
+
+        .examples { margin-top: 2rem; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .example-chip {
+            background: #f3f4f6; padding: 12px; border-radius: 8px; font-size: 0.85rem;
+            cursor: pointer; text-align: center; word-break: break-all; color: var(--text-sub);
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        .example-chip:hover { background: #e5e7eb; border-color: #d1d5db; color: var(--text-main); }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .modal-title { font-size: 1.25rem; font-weight: bold; margin-bottom: 1rem; color: #111827; }
+        .modal-body { font-size: 0.95rem; line-height: 1.6; color: #374151; }
+        .modal-body code { background: #f3f4f6; padding: 2px 4px; border-radius: 4px; font-family: monospace; }
+        .modal-body a { color: var(--primary); text-decoration: none; font-weight: 500; }
+        .modal-body a:hover { text-decoration: underline; }
+        
+        .footer {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-top: 2rem;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 1rem;
+            width: 100%;
+            max-width: 650px;
+        }
+        .footer div { margin-bottom: 0.5rem; }
+        .footer a { color: var(--primary); text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>UDI-DI Validator</h1>
+
+    <div class="info-section">
+        <h3>What is a UDI-DI?</h3>
+         
+        <p>The <a href="https://health.ec.europa.eu/medical-devices-topics-interest/unique-device-identifier-udi_en" target="_blank" class="highlight-link">UDI-DI (Device Identifier)</a> is the static part of the Unique Device Identification code. It identifies the specific version or model of a device and the manufacturer (labeller). It must appear on the physical label of the medical device.</p>
+        
+        <p><strong>Difference vs. Basic UDI-DI:</strong></p>
+        <ul>
+            <li><strong>UDI-DI:</strong> Printed on the packaging. Used for supply chain tracking.</li>
+            <li><strong>Basic UDI-DI:</strong> The primary key in the EUDAMED database. It groups devices with the same intended purpose and risk class. It is <em>never</em> printed on the packaging.</li>
+        </ul>
+    </div>
+    
+    <div class="form-group">
+        <input type="text" id="udiInput" placeholder="Enter UDI-DI code (e.g. 00840682138888)" autocomplete="off">
+    </div>
+
+    <button class="validate-btn" onclick="detectAndValidate()">Check Validity</button>
+
+    <div id="result"></div>
+
+    <div class="examples">
+        <div class="example-chip" onclick="setInput('00840682138888')">GS1 GTIN Example</div>
+        <div class="example-chip" onclick="setInput('+A999ABC1230V')">HIBCC UDI Example</div>
+        <div class="example-chip" onclick="setInput('=/A9999XYZ100T0944')">ICCBBA UDI Example</div>
+    </div>
+</div>
+
+<div class="footer">
+    <div>Source: <a href="https://health.ec.europa.eu/medical-devices-topics-interest/unique-device-identifier-udi_en" target="_blank">European Commission - Unique Device Identifier (UDI)</a></div>
+    <div>Created by: <a href="https://droidgren.github.io/" target="_blank">droidgren.github.io</a></div>
+</div>
+
+<div id="infoModal" class="modal-overlay" onclick="closeModal(event)">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal(event)">&times;</button>
+        <div class="modal-title" id="modalTitle">Structure Information</div>
+        <div class="modal-body" id="modalBody"></div>
+    </div>
+</div>
+
+<script>
+    // Info Content Dictionary
+    const infoContent = {
+        'GS1': `
+            
+            <strong>Standard:</strong> GS1 General Specifications<br>
+            <strong>Issuer:</strong> <a href="https://www.gs1.org" target="_blank">GS1 AISBL</a><br><br>
+            GS1 UDI-DIs (GTINs) are numeric codes usually 8, 12, 13, or 14 digits long.<br><br>
+            <strong>Validation Method:</strong> Modulo 10.<br>
+            1. Multiply digits by 3 and 1 alternately (from right).<br>
+            2. Sum the results.<br>
+            3. Subtract the sum from next multiple of 10.
+        `,
+        'HIBCC': `
+            
+            <strong>Standard:</strong> Health Industry Bar Code (HIBC)<br>
+            <strong>Issuer:</strong> <a href="https://www.hibcc.org" target="_blank">Health Industry Business Communications Council (HIBCC)</a><br><br>
+            HIBCC UDI-DIs begin with a <code>+</code> character (the LIC flag).<br><br>
+            <strong>Structure:</strong> <code>+LIC + ProductCode + CheckChar</code><br><br>
+            <strong>Validation Method:</strong> Modulo 43.<br>
+            1. Assign values to all characters (0-9, A-Z, -, ., Space, $, /, +, %).<br>
+            2. Sum values of all characters including the leading <code>+</code>.<br>
+            3. <code>Sum % 43</code> gives the index of the Check Character.
+        `,
+        'ICCBBA': `
+            
+            <strong>Standard:</strong> ISBT 128<br>
+            <strong>Issuer:</strong> <a href="https://www.iccbba.org" target="_blank">International Council for Commonality in Blood Banking Automation (ICCBBA)</a><br><br>
+            The ICCBBA UDI-DI (Processor Product Identification Code) typically starts with <code>=/</code>.<br><br>
+            <strong>Structure (Data Structure 034):</strong><br>
+            <code>=/</code> (Prefix)<br>
+            <code>nnnnn</code> (5-char Facility ID)<br>
+            <code>pppppp</code> (6-char Product Code)<br>
+            <code>qqqqq</code> (5-char Product Description Code)<br><br>
+            <strong>Validation:</strong> Checks specific character sets for each section. This structure does <em>not</em> contain an embedded check character for the DI itself.
+        `,
+        'Unknown': `
+            <strong>Unknown Format</strong><br><br>
+            The input did not match the standard patterns for the currently supported issuers:
+            <ul>
+                <li><a href="https://www.gs1.org" target="_blank">GS1</a> (Numeric)</li>
+                <li><a href="https://www.hibcc.org" target="_blank">HIBCC</a> (Starts with +)</li>
+                <li><a href="https://www.iccbba.org" target="_blank">ICCBBA</a> (Starts with =/)</li>
+            </ul>
+        `
+    };
+
+    function setInput(val) {
+        document.getElementById('udiInput').value = val;
+        detectAndValidate();
+    }
+
+    function showInfo(standard) {
+        const content = infoContent[standard] || infoContent['Unknown'];
+        document.getElementById('modalTitle').innerText = standard + ' Information';
+        document.getElementById('modalBody').innerHTML = content;
+        document.getElementById('infoModal').style.display = 'flex';
+    }
+
+    function closeModal(e) {
+        if (e.target === document.getElementById('infoModal') || e.target.className === 'modal-close') {
+            document.getElementById('infoModal').style.display = 'none';
+        }
+    }
+
+    function detectAndValidate() {
+        let input = document.getElementById('udiInput').value.trim();
+        const resultDiv = document.getElementById('result');
+        resultDiv.style.display = 'none';
+        resultDiv.innerHTML = '';
+
+        if (!input) return;
+
+        let result = null;
+
+        // --- 1. ICCBBA UDI-DI (Starts with =/ or &/) ---
+        if (input.startsWith('=/') || input.startsWith('&/')) {
+            result = validateICCBBA_UDIDI(input);
+            showResult(result);
+            return;
+        }
+
+        // --- 2. HIBCC (Starts with +) ---
+        if (input.startsWith('+')) {
+            result = validateHIBCC(input);
+            showResult(result);
+            return;
+        }
+
+        // --- 3. Numeric (GS1) ---
+        if (/^\d+$/.test(input)) {
+            // Try GS1
+            const gs1 = validateGS1(input);
+            if (gs1.valid) {
+                showResult(gs1);
+                return;
+            }
+            // If GS1 failed
+            showResult({ valid: false, title: 'Invalid Code', msg: 'Input is numeric but GS1 checksum failed.', standard: 'GS1' });
+            return;
+        }
+
+        showResult({ valid: false, title: 'Unknown Format', msg: 'Could not detect standard (GS1, HIBCC, ICCBBA).', standard: 'Unknown' });
+    }
+
+    /**
+     * HIBCC Validator
+     */
+    function validateHIBCC(code) {
+        const charSet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%";
+        
+        const checkChar = code.slice(-1);
+        const data = code.slice(0, -1);
+        
+        let sum = 0;
+        for (let i = 0; i < data.length; i++) {
+            const char = data[i];
+            const idx = charSet.indexOf(char);
+            
+            if (idx === -1) {
+                return { valid: false, title: 'Invalid Character', msg: `Character '${char}' is not allowed.`, standard: 'HIBCC' };
+            }
+            sum += idx;
+        }
+        
+        const remainder = sum % 43;
+        const calculatedChar = charSet[remainder];
+
+        if (calculatedChar === checkChar) {
+            return { valid: true, title: 'Valid HIBCC UDI', msg: `Checksum matches (Mod 43).`, standard: 'HIBCC' };
+        } else {
+            return { valid: false, title: 'Invalid HIBCC Checksum', msg: `Expected '${calculatedChar}', found '${checkChar}'.`, standard: 'HIBCC' };
+        }
+    }
+
+    /**
+     * ICCBBA UDI-DI (Structure 034)
+     */
+    function validateICCBBA_UDIDI(code) {
+        if (!code.startsWith('=/')) return { valid: false, title: 'Invalid Prefix', msg: 'Must start with =/', standard: 'ICCBBA' };
+        if (code.length !== 18) return { valid: false, title: 'Invalid Length', msg: `Expected 18 chars.`, standard: 'ICCBBA' };
+
+        const n = code.substr(2, 5); // Facility
+        const p = code.substr(7, 6); // Product
+        const q = code.substr(13, 5); // Desc
+
+        if (!/^[A-NP-Z0-9]{5}$/.test(n)) return { valid: false, title: 'Invalid Facility ID', msg: 'Contains invalid chars (e.g. letter O).', standard: 'ICCBBA' };
+        if (!/^[A-Z0-9]{6}$/.test(p)) return { valid: false, title: 'Invalid Product Code', msg: 'Invalid chars in product code.', standard: 'ICCBBA' };
+        if (!/^[A-Z0-9]{5}$/.test(q)) return { valid: false, title: 'Invalid Desc Code', msg: 'Invalid chars in desc code.', standard: 'ICCBBA' };
+
+        return { valid: true, title: 'Valid UDI-DI', msg: 'Format matches ISBT 128 Data Structure 034.', standard: 'ICCBBA' };
+    }
+
+    /**
+     * GS1 (Mod 10)
+     */
+    function validateGS1(code) {
+        if (![8, 12, 13, 14].includes(code.length)) return { valid: false };
+        const data = code.slice(0, -1);
+        const check = parseInt(code.slice(-1));
+        const rev = data.split('').reverse().join('');
+        let sum = 0;
+        for (let i = 0; i < rev.length; i++) sum += parseInt(rev[i]) * ((i % 2 === 0) ? 3 : 1);
+        const calc = (10 - (sum % 10)) % 10;
+        return calc === check 
+            ? { valid: true, title: 'Valid GS1 GTIN', msg: 'Checksum matches (Mod 10).', standard: 'GS1' }
+            : { valid: false, title: 'Invalid GS1 Checksum', msg: `Expected ${calc}, found ${check}.`, standard: 'GS1' };
+    }
+
+    function showResult(res) {
+        const div = document.getElementById('result');
+        div.style.display = 'block';
+        div.innerHTML = `
+            <div class="result-card ${res.valid ? 'valid' : 'invalid'}">
+                <div class="result-header">
+                    ${res.title}
+                    <span class="standard-badge">${res.standard}</span>
+                </div>
+                <div class="result-details">${res.msg}</div>
+                <button class="info-btn" onclick="showInfo('${res.standard}')">
+                    &#9432; About ${res.standard} Structure
+                </button>
+            </div>
+        `;
+    }
+</script>
+
+</body>
+</html>
