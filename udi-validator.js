@@ -19,7 +19,7 @@ const infoContent = {
         <strong>Issuer:</strong> <a href="https://www.hibcc.org" target="_blank">Health Industry Business Communications Council (HIBCC)</a><br><br>
         HIBCC UDI-DIs begin with a <code>+</code> character (the LIC flag).<br><br>
         <strong>Structure:</strong> <code>+LIC + Product ID + CheckChar</code><br><br>
-		<b>If</b> the code contains a combined  Primary PI (Product Identifier) and a Secondary (DI), eg has a /$ - enter the <b>full</b> code to verify.
+		<b>If</b> the code contains a combined  Primary PI (Product Identifier) and a Secondary (DI), eg has a /$ - enter the <b>full</b> code to verify. Include the + but not asterix *<br>
 		Its not possible to verify only the PI without the DI. 
 
 		Example<br><code>+EZIEZIEHMSOLOFDA11/$+56193/16D20250625W</code>
