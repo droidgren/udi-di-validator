@@ -4,7 +4,10 @@ const infoContent = {
         
         <strong>Standard:</strong> GS1 General Specifications<br>
         <strong>Issuer:</strong> <a href="https://www.gs1.org" target="_blank">GS1 AISBL</a><br><br>
-        GS1 UDI-DIs (GTINs) are numeric codes usually 8, 12, 13, or 14 digits long.<br><br>
+        GS1 UDI-DIs are 14-digit numeric codes (GTIN-14).<br>
+        Shorter GTINs (GTIN-8, GTIN-12, GTIN-13) must be padded with leading zeros to form 14 digits.<br><br>
+        On the barcode, the UDI-DI is identified by the Application Identifier <strong>(01)</strong>.<br><br>
+		Example: (01)<b><u>00614141007349</u></b>(17)141231(10)A12345B(21)1234<br><br>
         <strong>Validation Method:</strong> Modulo 10.<br>
         1. Multiply digits by 3 and 1 alternately (from right).<br>
         2. Sum the results.<br>
@@ -92,10 +95,10 @@ function detectAndValidate() {
         const gs1 = validateGS1(input);
         if (gs1.valid) {
             showResult(gs1);
-            return;
+        } else {
+            // Show result even if invalid (e.g. wrong length) so the user sees the specific GS1 error
+            showResult(gs1);
         }
-        // If GS1 failed
-        showResult({ valid: false, title: 'Invalid Code', msg: 'Input is numeric but GS1 checksum failed.', standard: 'GS1' });
         return;
     }
 
@@ -154,16 +157,28 @@ function validateICCBBA_UDIDI(code) {
  * GS1 (Mod 10)
  */
 function validateGS1(code) {
-    if (![8, 12, 13, 14].includes(code.length)) return { valid: false };
+    // STRICT 14-DIGIT CHECK
+    if (code.length !== 14) {
+        return { 
+            valid: false, 
+            title: 'Invalid Length', 
+            msg: `GS1 UDI-DI must be exactly 14 digits. Found ${code.length}.<br>Shorter GTINs (e.g. GTIN-13) must be padded with leading zeros.`, 
+            standard: 'GS1' 
+        };
+    }
+    
     const data = code.slice(0, -1);
     const check = parseInt(code.slice(-1));
     const rev = data.split('').reverse().join('');
     let sum = 0;
     for (let i = 0; i < rev.length; i++) sum += parseInt(rev[i]) * ((i % 2 === 0) ? 3 : 1);
     const calc = (10 - (sum % 10)) % 10;
-    return calc === check 
-        ? { valid: true, title: 'Valid GS1 GTIN', msg: 'Checksum matches (Mod 10).', standard: 'GS1' }
-        : { valid: false, title: 'Invalid GS1 Checksum', msg: `Expected ${calc}, found ${check}.`, standard: 'GS1' };
+    
+    if (calc === check) {
+        return { valid: true, title: 'Valid GS1 GTIN', msg: 'Checksum matches (Mod 10).', standard: 'GS1' };
+    } else {
+        return { valid: false, title: 'Invalid GS1 Checksum', msg: `Expected ${calc}, found ${check}.`, standard: 'GS1' };
+    }
 }
 
 function showResult(res) {
