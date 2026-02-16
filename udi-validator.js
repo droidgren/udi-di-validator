@@ -7,7 +7,7 @@ const infoContent = {
         GS1 UDI-DIs are 14-digit numeric codes (GTIN-14).<br>
         Shorter GTINs (GTIN-8, GTIN-12, GTIN-13) must be padded with leading zeros to form 14 digits.<br><br>
         On the barcode, the UDI-DI is identified by the Application Identifier <strong>(01)</strong>.<br><br>
-		Example: (01)<b><u>00614141007349</u></b>(17)141231(10)A12345B(21)1234<br><br>
+		Example<br> <code>(01)<b><u>00614141007349</u></b>(17)141231(10)A12345B(21)1234</code><br><br>
         <strong>Validation Method:</strong> Modulo 10.<br>
         1. Multiply digits by 3 and 1 alternately (from right).<br>
         2. Sum the results.<br>
@@ -18,11 +18,19 @@ const infoContent = {
         <strong>Standard:</strong> Health Industry Bar Code (HIBC)<br>
         <strong>Issuer:</strong> <a href="https://www.hibcc.org" target="_blank">Health Industry Business Communications Council (HIBCC)</a><br><br>
         HIBCC UDI-DIs begin with a <code>+</code> character (the LIC flag).<br><br>
-        <strong>Structure:</strong> <code>+LIC + ProductCode + CheckChar</code><br><br>
+        <strong>Structure:</strong> <code>+LIC + Product ID + CheckChar</code><br><br>
+		<b>If</b> the code contains a combined  Primary PI (Product Identifier) and a Secondary (DI), eg has a /$ - enter the <b>full</b> code to verify.
+		Its not possible to verify only the PI without the DI. 
+
+		Example<br><code>+EZIEZIEHMSOLOFDA11/$+56193/16D20250625W</code>
+		<br><br>
         <strong>Validation Method:</strong> Modulo 43.<br>
         1. Assign values to all characters (0-9, A-Z, -, ., Space, $, /, +, %).<br>
         2. Sum values of all characters including the leading <code>+</code>.<br>
         3. <code>Sum % 43</code> gives the index of the Check Character.
+		<br><br>
+		For more info and details check this <a href="https://health.ec.europa.eu/system/files/2021-01/application_hibcc_en_0.pdf">PDF.</a>
+		
     `,
     'ICCBBA': `
         
@@ -35,6 +43,8 @@ const infoContent = {
         <code>pppppp</code> (6-char Product Code)<br>
         <code>qqqqq</code> (5-char Product Description Code)<br><br>
         <strong>Validation:</strong> Checks specific character sets for each section. This structure does <em>not</em> contain an embedded check character for the DI itself.
+		<br><br>
+		For a Excel based validator, check this <a href="https://iccbba.org/resources/device-id-checker/">link</a>
     `,
     'Unknown': `
         <strong>Unknown Format</strong><br><br>
